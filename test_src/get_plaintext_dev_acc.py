@@ -5,18 +5,27 @@ import numpy as np
 import threading
 import subprocess
 
-thread_num = 12
-scale = 14
+
+"""
+Supported model:
+tiny -> for nlp Sentence Classification Task
+cct -> for Image Classification task
+"""
 model = 'tiny'
 task = 'mrpc'
+thread_num = 12
+scale = 14
 
 test_num_dict = {
     "mrpc": 408,
     "qnli": 2000,
     "mnli": 2000,
-    "sst2": 872
+    "sst2": 872,
+    "ImageNet": 1500
 }
 
+cv_task = ['ImageNet']
+nlp_task = ['mrpc', 'qnli', 'mnli', 'sst2']
 
 if scale == 12:
     binary_file = f'./{model}_{task}'
@@ -49,25 +58,34 @@ def sub_get(start, end):
         """
         if start == 0 and end == test_num:
             multi_thread_disabled = 1
-        input_am_file_name = file_dir + file_header + f'{i:03}' + '_AM_dev' + '.npy'
-        input_file_name = file_dir + file_header + f'{i:03}' + '_dev' + '.npy'
-        tmp_fixed_am_file = file_dir + file_header + f'{i:03}' + '_AM_dev' + "_fixedpt_scale_" + f"{scale}" + ".inp"
-        tmp_fixed_file = file_dir + file_header + f'{i:03}' + '_dev' + "_fixedpt_scale_" + f"{scale}" + ".inp"
-        tmp_integrated_file = tmp_dir + 'data' + f'{i:03}' + '.inp'
-        os.system(
-            f"/home/ubuntu/miniconda3/envs/acc/bin/python ./convert_np_to_fixedpt.py --scale {scale} --inp {input_am_file_name}")
-        os.system(
-            f"/home/ubuntu/miniconda3/envs/acc/bin/python ./convert_np_to_fixedpt.py --scale {scale} --inp {input_file_name}")
-        os.system(f"cat {tmp_fixed_file} {tmp_fixed_am_file} {weight_file}>{tmp_integrated_file}")
+        if task in nlp_task:
+            input_am_file_name = file_dir + file_header + f'{i:03}' + '_AM_dev' + '.npy'
+            input_file_name = file_dir + file_header + f'{i:03}' + '_dev' + '.npy'
+            tmp_fixed_am_file = file_dir + file_header + f'{i:03}' + '_AM_dev' + "_fixedpt_scale_" + f"{scale}" + ".inp"
+            tmp_fixed_file = file_dir + file_header + f'{i:03}' + '_dev' + "_fixedpt_scale_" + f"{scale}" + ".inp"
+            tmp_integrated_file = tmp_dir + 'data' + f'{i:03}' + '.inp'
+            os.system(
+                f"/home/ubuntu/miniconda3/envs/acc/bin/python ./convert_np_to_fixedpt.py --scale {scale} --inp {input_am_file_name}")
+            os.system(
+                f"/home/ubuntu/miniconda3/envs/acc/bin/python ./convert_np_to_fixedpt.py --scale {scale} --inp {input_file_name}")
+            os.system(f"cat {tmp_fixed_file} {tmp_fixed_am_file} {weight_file}>{tmp_integrated_file}")
+        if task in cv_task:
+            input_file_name = file_dir + file_header + f'_{i:04}' + '.npy'
+            tmp_fixed_file = file_dir + file_header + f'{i:04}' + "_fixedpt_scale_" + f"{scale}" + ".inp"
+            os.system(
+                f"/home/ubuntu/miniconda3/envs/acc/bin/python ./convert_np_to_fixedpt.py --scale {scale} --inp {input_file_name}")
+            tmp_integrated_file = tmp_dir + 'data' + f'{i:04}' + '.inp'
+            os.system(f"cat {tmp_fixed_file} {weight_file}>{tmp_integrated_file}")
         cmd = binary_file
         with open(tmp_integrated_file) as f:
             ret, _ = subprocess.Popen(cmd, stdin=f, stdout=subprocess.PIPE).communicate()
             f.close()
         ret = int(ret)
-        if task == 'mnli':
-            assert (ret == 0 or ret == 1 or ret == 2), f"[Error] Unexpected Output: {ret}"
-        else:
-            assert (ret == 0 or ret == 1), f"[Error] Unexpected Output: {ret}"
+        if task not in cv_task:
+            if task == 'mnli':
+                assert (ret == 0 or ret == 1 or ret == 2), f"[Error] Unexpected Output: {ret}"
+            else:
+                assert (ret == 0 or ret == 1), f"[Error] Unexpected Output: {ret}"
         prediction_list.append(ret)
         if ret == label[i]:
             true_num += 1
@@ -98,6 +116,8 @@ def get_loc_list(fullNum, threadNum):
 
 
 if __name__ == '__main__':
+    if (task not in nlp_task) and (task not in cv_task):
+        raise NotImplementedError(f"{task} is not supported")
     loc_list = get_loc_list(test_num, thread_num)
     print("Segmentation for Multi-threading:")
     print(loc_list)
