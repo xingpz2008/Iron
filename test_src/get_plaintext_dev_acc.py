@@ -11,10 +11,10 @@ Supported model:
 tiny -> for nlp Sentence Classification Task
 cct -> for Image Classification task
 """
-model = 'tiny'
-task = 'mrpc'
-thread_num = 12
-scale = 14
+model = 'cct'
+task = 'ImageNet'
+thread_num = 10
+scale = 12
 
 test_num_dict = {
     "mrpc": 408,
@@ -24,8 +24,15 @@ test_num_dict = {
     "ImageNet": 1500
 }
 
-cv_task = ['ImageNet']
+cv_task = ['ImageNet', 'cifar100']
 nlp_task = ['mrpc', 'qnli', 'mnli', 'sst2']
+
+input_restriction = {
+    "mnli": [0, 1, 2],
+    "qnli": [0, 1],
+    "sst2": [0, 1],
+    "mrpc": [0, 1],
+}
 
 if scale == 12:
     binary_file = f'./{model}_{task}'
@@ -71,7 +78,7 @@ def sub_get(start, end):
             os.system(f"cat {tmp_fixed_file} {tmp_fixed_am_file} {weight_file}>{tmp_integrated_file}")
         if task in cv_task:
             input_file_name = file_dir + file_header + f'_{i:04}' + '.npy'
-            tmp_fixed_file = file_dir + file_header + f'{i:04}' + "_fixedpt_scale_" + f"{scale}" + ".inp"
+            tmp_fixed_file = file_dir + file_header + f'_{i:04}' + "_fixedpt_scale_" + f"{scale}" + ".inp"
             os.system(
                 f"/home/ubuntu/miniconda3/envs/acc/bin/python ./convert_np_to_fixedpt.py --scale {scale} --inp {input_file_name}")
             tmp_integrated_file = tmp_dir + 'data' + f'{i:04}' + '.inp'
@@ -81,11 +88,8 @@ def sub_get(start, end):
             ret, _ = subprocess.Popen(cmd, stdin=f, stdout=subprocess.PIPE).communicate()
             f.close()
         ret = int(ret)
-        if task not in cv_task:
-            if task == 'mnli':
-                assert (ret == 0 or ret == 1 or ret == 2), f"[Error] Unexpected Output: {ret}"
-            else:
-                assert (ret == 0 or ret == 1), f"[Error] Unexpected Output: {ret}"
+        if task in input_restriction.keys():
+            assert ret in input_restriction[task], f"[Error] Unexpected Output: {ret}"
         prediction_list.append(ret)
         if ret == label[i]:
             true_num += 1
