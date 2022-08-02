@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.5)
+project(debug)
+set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+add_compile_options(-std=c++20)
+add_compile_options(-g)
+add_executable(tiny_mnli tiny_mnli_64_cpp0.cpp)
