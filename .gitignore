@@ -4,3 +4,8 @@
 /bert/uncased_L-12_H-768_A-12/
 *.svg
 /bert/output/
+/vit-pytorch/examples/
+/vit-pytorch/data_imagenet/
+/vit-pytorch/images/
+/vit-pytorch/models/
+/vit-pytorch/tests/
