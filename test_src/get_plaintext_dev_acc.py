@@ -5,23 +5,27 @@ import numpy as np
 import threading
 import subprocess
 
-
 """
 Supported model:
 tiny -> for nlp Sentence Classification Task
 cct -> for Image Classification task
 """
+# TODO: Only the following sections should be modified for reproducing.
 model = 'cct'
 task = 'ImageNet'
 thread_num = 10
 scale = 12
+python_interpreter = '/home/ubuntu/miniconda3/envs/acc/bin/python'
+##############
+
 
 test_num_dict = {
     "mrpc": 408,
     "qnli": 2000,
     "mnli": 2000,
     "sst2": 872,
-    "ImageNet": 1500
+    "ImageNet": 1500,
+    'cifar100': 10000,
 }
 
 cv_task = ['ImageNet', 'cifar100']
@@ -72,15 +76,15 @@ def sub_get(start, end):
             tmp_fixed_file = file_dir + file_header + f'{i:03}' + '_dev' + "_fixedpt_scale_" + f"{scale}" + ".inp"
             tmp_integrated_file = tmp_dir + 'data' + f'{i:03}' + '.inp'
             os.system(
-                f"/home/ubuntu/miniconda3/envs/acc/bin/python ./convert_np_to_fixedpt.py --scale {scale} --inp {input_am_file_name}")
+                f"{python_interpreter} ./convert_np_to_fixedpt.py --scale {scale} --inp {input_am_file_name}")
             os.system(
-                f"/home/ubuntu/miniconda3/envs/acc/bin/python ./convert_np_to_fixedpt.py --scale {scale} --inp {input_file_name}")
+                f"{python_interpreter} ./convert_np_to_fixedpt.py --scale {scale} --inp {input_file_name}")
             os.system(f"cat {tmp_fixed_file} {tmp_fixed_am_file} {weight_file}>{tmp_integrated_file}")
         if task in cv_task:
             input_file_name = file_dir + file_header + f'_{i:04}' + '.npy'
             tmp_fixed_file = file_dir + file_header + f'_{i:04}' + "_fixedpt_scale_" + f"{scale}" + ".inp"
             os.system(
-                f"/home/ubuntu/miniconda3/envs/acc/bin/python ./convert_np_to_fixedpt.py --scale {scale} --inp {input_file_name}")
+                f"{python_interpreter} ./convert_np_to_fixedpt.py --scale {scale} --inp {input_file_name}")
             tmp_integrated_file = tmp_dir + 'data' + f'{i:04}' + '.inp'
             os.system(f"cat {tmp_fixed_file} {weight_file}>{tmp_integrated_file}")
         cmd = binary_file
