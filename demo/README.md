@@ -36,7 +36,7 @@ Note: Because we used only parts of the ImageNet data, input for reproduction ca
 download data from [here](). 
 
 After getting the data, put the input files into `/test_src/{task}/{model}`. There will be a label file generated at the
-end of file generation, which should be put at `/test/src/` as well as the weight file and the .cpp file.
+end of file generation, which should be put at `/test_src/` as well as the weight file and the .cpp file.
 
 The next step is to compile the .cpp file by g++ (or any available C++ compiler). The binary file should be named as
 {task}_{model}, e.g. _cct_cifar100_ with no postfix. 
