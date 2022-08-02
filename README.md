@@ -70,7 +70,8 @@ The last step for preparing the model is to compile the CPP code to an executabl
 either `EzPC` or `test_src` environment, as long as there is a g++ compiler.
 
 ### Data Preparing
-Our framework support multiple GELU Benchmark datasets. However, the original data can not be used directly and some 
+Our framework support multiple GELU Benchmark datasets and typical CV tasks. 
+However, the original data can not be used directly and some 
 extra processing steps are compulsory.
 
 (Assuming model fine-tune is finalized.)
@@ -80,6 +81,9 @@ use the same method to process it in either plaintext or crypto settings. This c
 files should be generated. These are **embedding_outputs** and **input_masks** of the original data stored in the 
 format of Numpy Array. The user can control the number of data to be processed, i.e. you can process all data at 
 the push of a button. An extra _.npy_ file containing the **label** will be generated at the end of the process.
+
+For CV tasks, there are only 2 input files (weight file, data of input) for final evaluation, as masks are not used in 
+those tasks.
 
 ### Test the Model with Data
 Copy the binary file and data files to `test_src` (and its subdirectory if needed). The only thing to do now is to set 
